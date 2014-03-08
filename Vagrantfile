@@ -1,85 +1,45 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# This is intended to be a drop-in Vagrantfile, which reads VM configurations
+# from two yaml files (boxes.yml and nodes.yml) in the root directory.
+# See the README for more thorough documentation.
+
+# We're going to read node (vagrant vm instance) and box info from yaml files,
+# so we gots to know how to yaml
+require 'yaml'
+
+# Read box and node configs
+root_dir = File.dirname(__FILE__)
+boxes = YAML.load_file("#{root_dir}/boxes.yml")
+nodes = YAML.load_file("#{root_dir}/nodes.yml")
+
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  # All Vagrant configuration is done here. The most common configuration
-  # options are documented and commented below. For a complete reference,
-  # please see the online documentation at vagrantup.com.
 
-  config.vm.box = "centos-65-x64-virtualbox-puppet"
-  config.vm.box_url = "http://puppet-vagrant-boxes.puppetlabs.com/centos-65-x64-virtualbox-puppet.box"
+  # Define vagrant VMs for each node defined in nodes.yml
+  nodes.each do |node_name, node_details|
+    box_name = node_details['box']
+    box = boxes[box_name]
 
-  # Create a private network, which allows host-only access to the machine
-  # using a specific IP.
-  config.vm.network :private_network, ip: "192.168.139.10"
+    config.vm.define node_name do |node|
+      node.vm.box = box_name
+      node.vm.box_url = box['url']
+      node.vm.hostname = node_details['hostname']
+      node.vm.network "private_network", ip: node_details['ip']
+    
+      node_details['synced_folders'].each do |synced_folder|
+        node.vm.synced_folder synced_folder['source'], synced_folder['dest']
+      end
 
-  config.vm.synced_folder "./repos/yum", "/yum"
-
-  config.vm.provider :virtualbox do |vb|
-    vb.customize ["modifyvm", :id, "--memory", "1024"]
+      node.vm.provider :virtualbox do |vb|
+        vb.name = node_name
+        vb.customize [ "modifyvm", :id, "--memory", node_details['memory'] ]
+        vb.customize [ "modifyvm", :id, "--cpus", node_details['cpus'] ]
+      end
+    end
   end
 
-  # Enable provisioning with Puppet stand alone.  Puppet manifests
-  # are contained in a directory path relative to this Vagrantfile.
-  # You will need to create the manifests directory and a manifest in
-  # the file yum-repo.pp in the manifests_path directory.
-  #
-  # An example Puppet manifest to provision the message of the day:
-  #
-  # # group { "puppet":
-  # #   ensure => "present",
-  # # }
-  # #
-  # # File { owner => 0, group => 0, mode => 0644 }
-  # #
-  # # file { '/etc/motd':
-  # #   content => "Welcome to your Vagrant-built virtual machine!
-  # #               Managed by Puppet.\n"
-  # # }
-  #
-  # config.vm.provision :puppet do |puppet|
-  #   puppet.manifests_path = "manifests"
-  #   puppet.manifest_file  = "site.pp"
-  # end
-
-  # Enable provisioning with chef solo, specifying a cookbooks path, roles
-  # path, and data_bags path (all relative to this Vagrantfile), and adding
-  # some recipes and/or roles.
-  #
-  # config.vm.provision :chef_solo do |chef|
-  #   chef.cookbooks_path = "../my-recipes/cookbooks"
-  #   chef.roles_path = "../my-recipes/roles"
-  #   chef.data_bags_path = "../my-recipes/data_bags"
-  #   chef.add_recipe "mysql"
-  #   chef.add_role "web"
-  #
-  #   # You may also specify custom JSON attributes:
-  #   chef.json = { :mysql_password => "foo" }
-  # end
-
-  # Enable provisioning with chef server, specifying the chef server URL,
-  # and the path to the validation key (relative to this Vagrantfile).
-  #
-  # The Opscode Platform uses HTTPS. Substitute your organization for
-  # ORGNAME in the URL and validation key.
-  #
-  # If you have your own Chef Server, use the appropriate URL, which may be
-  # HTTP instead of HTTPS depending on your configuration. Also change the
-  # validation key to validation.pem.
-  #
-  # config.vm.provision :chef_client do |chef|
-  #   chef.chef_server_url = "https://api.opscode.com/organizations/ORGNAME"
-  #   chef.validation_key_path = "ORGNAME-validator.pem"
-  # end
-  #
-  # If you're using the Opscode platform, your validator client is
-  # ORGNAME-validator, replacing ORGNAME with your organization name.
-  #
-  # If you have your own Chef Server, the default validation client name is
-  # chef-validator, unless you changed the configuration.
-  #
-  #   chef.validation_client_name = "ORGNAME-validator"
 end

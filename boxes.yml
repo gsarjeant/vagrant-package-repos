@@ -1,0 +1,4 @@
+centos-65-x64-virtualbox-puppet:
+  url: http://puppet-vagrant-boxes.puppetlabs.com/centos-65-x64-virtualbox-puppet.box
+debian-73-x64-virtualbox-puppet:
+  url: http://puppet-vagrant-boxes.puppetlabs.com/debian-73-x64-virtualbox-puppet.box

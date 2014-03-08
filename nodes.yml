@@ -1,0 +1,22 @@
+yum:
+  hostname: yum.vagrant.vm
+  box: centos-65-x64-virtualbox-puppet
+  ip: 192.168.139.10
+  memory: 1024
+  cpus: 1
+  synced_folders:
+    - source: repos/yum
+      dest: /yum
+    - source: repos/gem
+      dest: /gem
+apt:
+  hostname: apt.vagrant.vm
+  box: debian-73-x64-virtualbox-puppet
+  ip: 192.168.139.11
+  memory: 1024
+  cpus: 1
+  synced_folders:
+    - source: repos/apt
+      dest: /apt
+    - source: repos/gem
+      dest: /gem
