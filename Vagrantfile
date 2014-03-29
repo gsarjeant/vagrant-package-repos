@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 # This is intended to be a drop-in Vagrantfile, which reads VM configurations
-# from a yaml file (nodes.yml) in the root directory.
+# from a yaml file (vagrant.yml) in the root directory.
 # It is only compatible with vagrant 1.5+
 # See the README for more thorough documentation.
 
@@ -12,7 +12,7 @@ require 'yaml'
 
 # Read box and node configs
 root_dir = File.dirname(__FILE__)
-nodes = YAML.load_file("#{root_dir}/nodes.yml")
+nodes = YAML.load_file("#{root_dir}/vagrant.yml")
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
